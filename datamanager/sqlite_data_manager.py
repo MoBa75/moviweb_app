@@ -64,6 +64,20 @@ class SQLiteDataManager(DataManagerInterface):
             return {"error": f"User '{user.name}' already exists."}
         return self.add_element(user)
 
+    def delete_user(self, user_id):
+        """
+        Deletes a user from the database by ID, including associated user-movie links.
+        """
+        user = self.db.session.get(User, user_id)
+        if not user:
+            return {'error': 'User not found'}, 404
+
+        self.db.session.delete(user)
+        result, status = self.commit_only()
+        if status == 200:
+            return {'message': 'User deleted'}, 200
+        return result, status
+
     def get_all_movies(self):
         """
         Retrieves all movie entries from the database.
