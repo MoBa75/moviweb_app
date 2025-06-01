@@ -1,4 +1,4 @@
-from flask import Flask
+from flask import Flask, request, render_template, redirect, url_for
 from data_models import db, User, Movie, UserMovies
 from db_validation import validate_database
 import os
@@ -15,34 +15,93 @@ data_manager = SQLiteDataManager(app)
 
 validate_database(app)
 
-@app.route()
+
+@app.route('/')
+def home():
+    return render_template('home.html')
+
+@app.route('/users')
+def list_users():
+    users = data_manager.get_all_users()
+    return render_template('users.html', users=users)
+
+@app.route('/users/<int:user_id>')
+def user_movies(user_id):
+    movies = data_manager.get_user_movies(user_id)
+    if isinstance(movies, dict) and 'error' in movies:
+        return render_template('error.html', error=movies['error']), 404
+    return render_template('user_movies.html', movies=movies, user_id=user_id)
+
+@app.route('/add_user', methods=['GET', 'POST'])
 def add_user():
-    pass
+    if request.method == 'POST':
+        username = request.form.get('name')
+        if username:
+            new_user = User(name=username)
+            error = data_manager.add_user(new_user)
+            if not error:
+                return redirect(url_for('home'))
+        return render_template('add_user.html',
+                               error=error if error else "Username is required")
+    return render_template('add_user.html')
 
-@app.route()
-def choose_user():
-    pass
+@app.route('/users/<int:user_id>/add_movie', methods=['GET', 'POST'])
+def add_movie(user_id):
+    if request.method == 'POST':
+        title = request.form.get('title')
+        director = request.form.get('director')
+        year = request.form.get('year')
+        rating = request.form.get('rating')
 
-@app.route()
-def delete_user():
-    pass
+        if all([title, director, year, rating]):
+            new_movie = Movie(title=title, director=director, year=int(year), rating=int(rating))
+            error = data_manager.add_movie(new_movie)
+            if not error:
+                # Film dem User hinzufügen (Vereinfachung)
+                user_movie = UserMovies(user_id=user_id, movie=new_movie)
+                db.session.add(user_movie)
+                db.session.commit()
+                return redirect(url_for('user_movies', user_id=user_id))
+        return render_template('add_movie.html',
+                               error=error if error else "All fields are required", user_id=user_id)
+    return render_template('add_movie.html', user_id=user_id)
 
-@app.route()
-def show_movies():
-    pass
+@app.route('/users/<int:user_id>/update_movie/<int:movie_id>', methods=['GET', 'POST'])
+def update_movie(user_id, movie_id):
+    movie = Movie.query.get(movie_id)
+    if not movie:
+        return render_template('error.html', error="Movie not found"), 404
 
-@app.route()
-def add_movie():
-    pass
+    if request.method == 'POST':
+        movie.title = request.form.get('title', movie.title)
+        movie.director = request.form.get('director', movie.director)
+        movie.year = int(request.form.get('year', movie.year))
+        movie.rating = int(request.form.get('rating', movie.rating))
 
-@app.route()
-def update_movie():
-    pass
+        error, _ = data_manager.update_movie(movie)
+        if not error:
+            return redirect(url_for('user_movies', user_id=user_id))
+        return render_template('edit_movie.html', movie=movie, error=error)
+    return render_template('edit_movie.html', movie=movie)
 
-@app.route()
-def delete_movie():
-    pass
+@app.route('/users/<int:user_id>/delete_movie/<int:movie_id>', methods=['POST'])
+def delete_movie(user_id, movie_id):
+    result, status = data_manager.delete_movie(movie_id)
+    if not status == 200:
+        return render_template('error.html', error=result.get('error')), status
+    return redirect(url_for('user_movies', user_id=user_id))
 
-app.route()
-def user_rating():
-    pass
+@app.route('/delete_user/<int:user_id>', methods=['GET', 'POST'])
+def delete_user(user_id):
+    result, status = data_manager.delete_user(user_id)
+    if not status == 200:
+        return render_template('error.html', error=result.get('error')), status
+    return redirect(url_for('home'))
+
+@app.errorhandler(404)
+def not_found(error):
+    return render_template('error.html', error="Seite nicht gefunden (404)"), 404
+
+@app.errorhandler(500)
+def internal_error(error):
+    return render_template('error.html', error="Interner Serverfehler (500)"), 500
