@@ -3,6 +3,7 @@ from data_models import db, User, Movie, UserMovies
 from db_validation import validate_database
 import os
 from datamanager.sqlite_data_manager import SQLiteDataManager
+from movie_data_api import get_movie_data
 
 app = Flask(__name__)
 
@@ -54,10 +55,9 @@ def add_movie(user_id):
         rating = request.form.get('rating')
 
         if all([title, director, year, rating]):
-            new_movie = Movie(title=title, director=director, year=int(year), rating=int(rating))
+            new_movie = Movie(title=title, director=director, year=int(year), rating=rating)
             error = data_manager.add_movie(new_movie)
             if not error:
-                # Film dem User hinzufügen (Vereinfachung)
                 user_movie = UserMovies(user_id=user_id, movie=new_movie)
                 db.session.add(user_movie)
                 db.session.commit()
@@ -78,11 +78,38 @@ def update_movie(user_id, movie_id):
         movie.year = int(request.form.get('year', movie.year))
         movie.rating = int(request.form.get('rating', movie.rating))
 
-        error, _ = data_manager.update_movie(movie)
+        error, result = data_manager.update_movie(movie)
         if not error:
             return redirect(url_for('user_movies', user_id=user_id))
         return render_template('edit_movie.html', movie=movie, error=error)
     return render_template('edit_movie.html', movie=movie)
+
+@app.route('/users/<int:user_id>/add_movie', methods=['GET', 'POST'])
+def add_movie(user_id):
+    if request.method == 'POST':
+        title = request.form.get('title')
+        director = request.form.get('director')
+        year = request.form.get('year')
+        rating = request.form.get('rating')
+
+        if all([title, director, year, rating]):
+            try:
+                rating = float(rating)
+                year = int(year)
+            except ValueError:
+                return render_template('add_movie.html',
+                                       error="Invalid rating or year", user_id=user_id)
+
+            new_movie = Movie(title=title, director=director, year=year, rating=rating)
+            error = data_manager.add_movie(new_movie)
+            if not error:
+                user_movie = UserMovies(user_id=user_id, movie=new_movie)
+                error = data_manager.add_element(user_movie)
+                if not error:
+                    return redirect(url_for('user_movies', user_id=user_id))
+            return render_template('add_movie.html', error=error, user_id=user_id)
+    return render_template('add_movie.html', user_id=user_id)
+
 
 @app.route('/users/<int:user_id>/delete_movie/<int:movie_id>', methods=['POST'])
 def delete_movie(user_id, movie_id):
@@ -97,6 +124,18 @@ def delete_user(user_id):
     if not status == 200:
         return render_template('error.html', error=result.get('error')), status
     return redirect(url_for('home'))
+
+@app.route('/fetch_movie', methods=['GET', 'POST'])
+def fetch_movie():
+    if request.method == 'POST':
+        movie_title = request.form.get('title')
+        if movie_title:
+            movie_data = get_movie_data(movie_title)
+            if 'error' in movie_data:
+                return render_template('fetch_movie.html',
+                                       error=movie_data['error'])
+            return render_template('fetch_movie.html', movie=movie_data)
+    return render_template('fetch_movie.html')
 
 @app.errorhandler(404)
 def not_found(error):
