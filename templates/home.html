@@ -1,0 +1,31 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Welcome to the Movie Manager</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+    <div class="container">
+        <h1>Welcome to the Movie Manager</h1>
+
+        <p>This app allows you to search for movies, save them to your personal collection, and manage your list.</p>
+        <p>Please select an existing user or <a href="{{ url_for('add_user') }}">register a new one</a>.</p>
+
+        {% if error %}
+            <p class="error-message">{{ error }}</p>
+        {% endif %}
+
+        <form method="POST" action="{{ url_for('home') }}">
+            <label for="username">Select a user:</label>
+            <select name="username" id="username" required>
+                {% for user in users %}
+                    <option value="{{ user[0] }}">{{ user[0] }}</option>
+                {% endfor %}
+            </select>
+            <button type="submit">Continue</button>
+        </form>
+    </div>
+</body>
+</html>

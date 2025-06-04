@@ -9,9 +9,9 @@ API_KEY = os.getenv('API_KEY')
 
 def get_movie_data(movie):
     """
-    Retrieves movie data from the OMDb API by movie title.
+    Retrieves selected movie data from the OMDb API by movie title.
     :param movie: Title of the movie to search for as String.
-    :return: Movie data as dictionary.
+    :return: Filtered movie data as dictionary.
     """
     if not API_KEY:
         return {'error': 'API_KEY not found. Did you load the .env file and set it correctly?'}
@@ -19,7 +19,6 @@ def get_movie_data(movie):
     try:
         api_url = f"http://www.omdbapi.com/?apikey={API_KEY}&t={movie}"
         response = requests.get(api_url, timeout=5)
-
         response.raise_for_status()
 
         try:
@@ -30,11 +29,17 @@ def get_movie_data(movie):
         if data.get('Response') == 'False':
             return {'error': data.get('Error', 'Movie not found')}
 
-        return data
+        return {
+            'Title': data.get('Title'),
+            'Director': data.get('Director'),
+            'Year': data.get('Year'),
+            'imdbRating': data.get('imdbRating'),
+            'Poster': data.get('Poster')
+        }
 
     except RequestException as error:
         return {'error': f'Network error: {str(error)}'}
 
-movie_name = 'Rambo'
-result = get_movie_data(movie_name)
+
+result = get_movie_data('Predator')
 print(result)

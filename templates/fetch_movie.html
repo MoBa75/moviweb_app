@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Search Movie</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+    <div class="container">
+        <h1>Search for a Movie</h1>
+
+        {% if error %}
+            <p style="color: red;">{{ error }}</p>
+        {% endif %}
+
+        <form method="POST">
+            <label for="title">Enter movie title:</label>
+            <input type="text" id="title" name="title" required>
+            <input type="hidden" name="user_id" value="{{ user_id }}">
+            <button type="submit">Search</button>
+        </form>
+
+        {% if movie %}
+            <h2>Movie Found:</h2>
+            <ul>
+                <li><strong>Title:</strong> {{ movie.Title }}</li>
+                <li><strong>Director:</strong> {{ movie.Director }}</li>
+                <li><strong>Year:</strong> {{ movie.Year }}</li>
+                <li><strong>Rating:</strong> {{ movie.imdbRating }}</li>
+                <li><strong>Poster:</strong><br>
+                    <img src="{{ movie.Poster }}" alt="Movie Poster"
+                         class="movie-poster">
+                </li>
+            </ul>
+
+            <!-- Save Movie -->
+            <form method="POST" action="{{ url_for('add_movie', user_id=user_id) }}">
+                <input type="hidden" name="title" value="{{ movie.Title }}">
+                <input type="hidden" name="director" value="{{ movie.Director }}">
+                <input type="hidden" name="year" value="{{ movie.Year }}">
+                <input type="hidden" name="rating" value="{{ movie.imdbRating }}">
+                <input type="hidden" name="poster" value="{{ movie.Poster }}">
+                <button type="submit">Save this Movie</button>
+            </form>
+
+            <!-- Back Buttons -->
+            <div class="top-buttons">
+                <form method="GET" action="{{ url_for('fetch_movie', user_id=user_id) }}">
+                    <button type="submit" class="button">Back to Search</button>
+                </form>
+                <form method="GET" action="{{ url_for('home') }}">
+                    <button type="submit" class="button">Back to Home</button>
+                </form>
+            </div>
+        {% endif %}
+    </div>
+</body>
+</html>

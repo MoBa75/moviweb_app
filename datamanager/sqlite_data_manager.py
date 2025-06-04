@@ -1,5 +1,5 @@
 from flask_sqlalchemy import SQLAlchemy
-from data_manager_interface import DataManagerInterface
+from datamanager.data_manager_interface import DataManagerInterface
 from data_models import db, User, Movie, UserMovies
 from sqlalchemy.exc import SQLAlchemyError
 
@@ -51,7 +51,7 @@ class SQLiteDataManager(DataManagerInterface):
             user = self.db.session.get(User, user_id)
             if not user:
                 return {'error': f"User does not exist."}
-            return [entry.movie for entry in user.user_movies]
+            return [entry.movies for entry in user.user_movies]
         except SQLAlchemyError as error:
             return {'error': str(error)}
 

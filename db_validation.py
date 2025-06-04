@@ -21,7 +21,7 @@ def validate_database(app):
         inspector = inspect(db.engine)
         expected_tables = {
             'user': {'id', 'name'},
-            'movies': {'id', 'title', 'director', 'year', 'rating'}
+            'movies': {'id', 'title', 'director', 'year', 'rating', 'poster'}
         }
         actual_tables = set(inspector.get_table_names())
         missing_tables = set(expected_tables.keys()) - actual_tables
