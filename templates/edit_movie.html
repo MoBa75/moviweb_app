@@ -2,31 +2,41 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>Edit Movie</title>
+    <title>Edit Rating</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
 </head>
 <body>
-    <h1>Edit Movie</h1>
+    <div class="container">
+        <h1>Edit Personal Rating</h1>
+        <p>Here you can replace the official IMDb rating with your personal rating (between 0 and 10).</p>
 
-    {% if error %}
-        <p style="color: red;">{{ error }}</p>
-    {% endif %}
+        {% if error %}
+            <p class="error-message">{{ error }}</p>
+        {% endif %}
 
-    <form method="POST">
-        <label for="title">Title:</label>
-        <input type="text" name="title" value="{{ movie.title }}" required><br>
+        <div class="movie-card" style="margin: 0 auto;">
+            {% if movie.poster %}
+                <img src="{{ movie.poster }}" alt="Movie Poster" class="movie-poster">
+            {% endif %}
+            <h3>{{ movie.title }}</h3>
+            <p><strong>Director:</strong> {{ movie.director }}</p>
+            <p><strong>Year:</strong> {{ movie.year }}</p>
+            <p><strong>Current Rating:</strong> {{ movie.rating }}</p>
+        </div>
 
-        <label for="director">Director:</label>
-        <input type="text" name="director" value="{{ movie.director }}" required><br>
+        <form method="POST">
+            <label for="rating">Your Rating (0 - 10):</label>
+            <input type="text" name="rating" value="{{ movie.rating }}" required>
 
-        <label for="year">Year:</label>
-        <input type="number" name="year" value="{{ movie.year }}" required><br>
+            <button type="submit" class="button edit-button">Update Rating</button>
+        </form>
 
-        <label for="rating">Rating:</label>
-        <input type="text" name="rating" value="{{ movie.rating }}" required><br>
 
-        <button type="submit">Update</button>
-    </form>
-
-    <p><a href="{{ url_for('user_movies', user_id=movie.user_movies[0].user_id) }}">Back to Movie List</a></p>
+        <div class="top-buttons">
+            <a href="{{ url_for('user_movies', user_id=movie.user_movies[0].user_id) }}" class="button">
+                Back to Movie List
+            </a>
+        </div>
+    </div>
 </body>
 </html>

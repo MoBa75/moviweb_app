@@ -11,14 +11,14 @@
         <h1>Search for a Movie</h1>
 
         {% if error %}
-            <p style="color: red;">{{ error }}</p>
+            <p class="error-message">{{ error }}</p>
         {% endif %}
 
         <form method="POST">
             <label for="title">Enter movie title:</label>
             <input type="text" id="title" name="title" required>
             <input type="hidden" name="user_id" value="{{ user_id }}">
-            <button type="submit">Search</button>
+            <button type="submit" class="button">Search</button>
         </form>
 
         {% if movie %}
@@ -29,8 +29,7 @@
                 <li><strong>Year:</strong> {{ movie.Year }}</li>
                 <li><strong>Rating:</strong> {{ movie.imdbRating }}</li>
                 <li><strong>Poster:</strong><br>
-                    <img src="{{ movie.Poster }}" alt="Movie Poster"
-                         class="movie-poster">
+                    <img src="{{ movie.Poster }}" alt="Movie Poster" class="movie-poster">
                 </li>
             </ul>
 
@@ -41,17 +40,14 @@
                 <input type="hidden" name="year" value="{{ movie.Year }}">
                 <input type="hidden" name="rating" value="{{ movie.imdbRating }}">
                 <input type="hidden" name="poster" value="{{ movie.Poster }}">
-                <button type="submit">Save this Movie</button>
+                <button type="submit" class="button">Save this Movie</button>
             </form>
+        {% endif %}
 
-            <!-- Back Buttons -->
+        <!-- Back Navigation -->
+        {% if user_id %}
             <div class="top-buttons">
-                <form method="GET" action="{{ url_for('fetch_movie', user_id=user_id) }}">
-                    <button type="submit" class="button">Back to Search</button>
-                </form>
-                <form method="GET" action="{{ url_for('home') }}">
-                    <button type="submit" class="button">Back to Home</button>
-                </form>
+                <a href="{{ url_for('user_movies', user_id=user_id) }}" class="button">Back to Movie List</a>
             </div>
         {% endif %}
     </div>

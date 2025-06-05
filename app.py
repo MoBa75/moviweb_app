@@ -30,7 +30,8 @@ def home():
             if user:
                 return redirect(url_for('user_movies', user_id=user.id))
             else:
-                return render_template('home.html', users=users, error="User not found.")
+                return render_template('home.html', users=users,
+                                       error="User not found.")
     return render_template('home.html', users=users)
 
 
@@ -46,6 +47,7 @@ def user_movies(user_id):
         return render_template('error.html', error=movies['error']), 404
     return render_template('user_movies.html', movies=movies, user_id=user_id)
 
+
 @app.route('/add_user', methods=['GET', 'POST'])
 def add_user():
     if request.method == 'POST':
@@ -59,6 +61,7 @@ def add_user():
                                error=error if error else "Username is required")
     return render_template('add_user.html')
 
+
 @app.route('/users/<int:user_id>/update_movie/<int:movie_id>', methods=['GET', 'POST'])
 def update_movie(user_id, movie_id):
     movie = Movie.query.get(movie_id)
@@ -66,16 +69,24 @@ def update_movie(user_id, movie_id):
         return render_template('error.html', error="Movie not found"), 404
 
     if request.method == 'POST':
-        movie.title = request.form.get('title', movie.title)
-        movie.director = request.form.get('director', movie.director)
-        movie.year = int(request.form.get('year', movie.year))
-        movie.rating = int(request.form.get('rating', movie.rating))
+        raw_rating = request.form.get('rating', str(movie.rating))
+        rating_str = raw_rating.replace(',', '.')
+
+        try:
+            movie.rating = float(rating_str)
+            if movie.rating < 0.0 or movie.rating > 10.0:
+                raise ValueError("Rating must be between 0 and 10")
+        except (ValueError, TypeError):
+            return render_template('edit_movie.html', movie=movie,
+                                   error="Please enter a valid rating between 0 and 10.")
 
         error, result = data_manager.update_movie(movie)
         if not error:
             return redirect(url_for('user_movies', user_id=user_id))
         return render_template('edit_movie.html', movie=movie, error=error)
+
     return render_template('edit_movie.html', movie=movie)
+
 
 @app.route('/users/<int:user_id>/add_movie', methods=['POST'])
 def add_movie(user_id):
@@ -83,14 +94,19 @@ def add_movie(user_id):
     director = request.form.get('director')
     year = request.form.get('year')
     rating = request.form.get('rating')
-    poster = request.form.get('poster')  # <--- Poster-URL wird jetzt abgefragt
+    poster = request.form.get('poster')
 
-    if all([title, director, year, rating]):
+    if all([title, director, year]):
         try:
-            rating = float(rating)
             year = int(year)
-        except ValueError:
-            return render_template('error.html', error="Invalid rating or year")
+
+            if rating is None or rating.strip().lower() == "n/a":
+                rating = None
+            else:
+                rating = float(rating.replace(",", "."))
+        except (ValueError, TypeError):
+            return render_template('error.html',
+                                   error="Invalid rating or year format.")
 
         new_movie = Movie(title=title, director=director, year=year, rating=rating, poster=poster)
         error = data_manager.add_movie(new_movie)
@@ -111,6 +127,7 @@ def delete_movie(user_id, movie_id):
         return render_template('error.html', error=result.get('error')), status
     return redirect(url_for('user_movies', user_id=user_id))
 
+
 @app.route('/delete_user/<int:user_id>', methods=['GET', 'POST'])
 def delete_user(user_id):
     result, status = data_manager.delete_user(user_id)
@@ -118,12 +135,12 @@ def delete_user(user_id):
         return render_template('error.html', error=result.get('error')), status
     return redirect(url_for('home'))
 
+
 @app.route('/fetch_movie', methods=['GET', 'POST'])
 def fetch_movie():
     user_id = request.args.get('user_id', type=int)  # für GET
 
     if request.method == 'POST':
-        # Falls im POST-Formular enthalten, überschreibt das user_id aus den args
         user_id = request.form.get('user_id', type=int) or user_id
         movie_title = request.form.get('title')
         if movie_title:
@@ -139,11 +156,21 @@ def fetch_movie():
 
 @app.errorhandler(404)
 def not_found(error):
-    return render_template('error.html', error="Seite nicht gefunden (404)"), 404
+    return render_template('error.html',
+                           error="Seite nicht gefunden (404)"), 404
+
 
 @app.errorhandler(500)
 def internal_error(error):
-    return render_template('error.html', error="Interner Serverfehler (500)"), 500
+    return render_template('error.html',
+                           error="Interner Serverfehler (500)"), 500
+
+
+@app.route('/test-error')
+def test_error():
+    return render_template('error.html',
+                           error="Dies ist ein gezielt ausgelöster Testfehler."), 404
+
 
 if __name__ == '__main__':
-    app.run(port=5000, debug=True)
+    app.run(host='0.0.0.0', port=5002, debug=False)
