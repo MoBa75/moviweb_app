@@ -88,26 +88,30 @@ class SQLiteDataManager(DataManagerInterface):
         except SQLAlchemyError as error:
             return {'error': str(error)}, 500
 
-    def add_movie(self, movie):
+    def add_movie(self, movie, user_id):
         """Adds a new movie to the database if the title not already exist."""
         try:
             existing_movie = self.db.session.query(Movie).filter_by(title=movie.title).first()
-            if existing_movie:
-                return {"error": f"Movie '{movie.title}' already exists."}, 409
-            return self.add_element(movie), 200
+            if not existing_movie:
+                self.add_element(movie)
+                existing_movie = movie
+            else:
+                connection = (self.db.session.query(UserMovies)
+                              .filter_by(user_id=user_id, movie_id=existing_movie.id).first())
+                if connection:
+                    return {"error": f"Movie '{movie.title}' already exists."}, 409
+            new_connection = UserMovies(user_id=user_id, movie_id=existing_movie.id)
+            return self.add_element(new_connection)
         except SQLAlchemyError as error:
             return {'error': str(error)}, 500
 
-    def update_movie(self, movie_id, rating):
+    def update_movie(self, movie, rating):
         """Updates rating of a movie."""
-        if not isinstance(movie_id, int):
-            return {'error': 'Movie id has to be an integer.'}, 400
+        if not isinstance(movie, Movie):
+            return {'error': 'Movie has to be a Movie class instance.'}, 400
         if not isinstance(rating, float):
             return {'error': 'Rating has to be a float.'}, 400
 
-        movie, status = self.get_movie(movie_id)
-        if status != 200:
-            return movie, status
         movie.rating = rating
         message, status = self.commit_only()
         return message, status
@@ -150,7 +154,7 @@ class SQLiteDataManager(DataManagerInterface):
     def get_user_by_name(self, username):
         """Gets a user by name."""
         try:
-            existing_user = self.db.session.query(User).filter_by(name=username)
+            existing_user = self.db.session.query(User).filter_by(name=username).first()
             if not existing_user:
                 return {'error': 'User not found'}, 404
             return existing_user, 200

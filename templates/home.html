@@ -21,7 +21,7 @@
             <label for="username">Select a user:</label>
             <select name="username" id="username" required>
                 {% for user in users %}
-                    <option value="{{ user[0] }}">{{ user[0] }}</option>
+                    <option value="{{ user.name }}">{{ user.name }}</option>
                 {% endfor %}
             </select>
             <button type="submit">Continue</button>

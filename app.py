@@ -86,7 +86,7 @@ def update_movie(user_id, movie_id):
             return render_template('edit_movie.html', movie=movie,
                                    error="Please enter a valid rating between 0 and 10.")
 
-        error, result = data_manager.update_movie(movie)
+        error, result = data_manager.update_movie(movie, rating_float)
         if result == 200:
             return redirect(url_for('user_movies', user_id=user_id))
         return render_template('edit_movie.html', movie=movie, error=error)
@@ -115,12 +115,9 @@ def add_movie(user_id):
             abort(400, description="Invalid rating or year format.")
 
         new_movie = Movie(title=title, director=director, year=year, rating=rating, poster=poster)
-        error, result = data_manager.add_movie(new_movie)
+        error, result = data_manager.add_movie(new_movie, user_id)
         if result == 200:
-            user_movie = UserMovies(user_id=user_id, movie_id=new_movie.id)
-            error, result = data_manager.add_element(user_movie)
-            if result == 200:
-                return redirect(url_for('user_movies', user_id=user_id))
+            return redirect(url_for('user_movies', user_id=user_id))
         abort(result, description=error['error'])
     return render_template('error.html', error="Missing movie data")
 
