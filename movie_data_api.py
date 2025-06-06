@@ -20,11 +20,7 @@ def get_movie_data(movie):
         api_url = f"http://www.omdbapi.com/?apikey={API_KEY}&t={movie}"
         response = requests.get(api_url, timeout=5)
         response.raise_for_status()
-
-        try:
-            data = response.json()
-        except ValueError:
-            return {'error': 'Response is not valid JSON'}
+        data = response.json()
 
         if data.get('Response') == 'False':
             return {'error': data.get('Error', 'Movie not found')}
@@ -36,7 +32,8 @@ def get_movie_data(movie):
             'imdbRating': data.get('imdbRating'),
             'Poster': data.get('Poster')
         }
-
+    except ValueError:
+        return {'error': 'Response is not valid JSON'}
     except RequestException as error:
         return {'error': f'Network error: {str(error)}'}
 

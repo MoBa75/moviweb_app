@@ -31,7 +31,7 @@ class Movie(db.Model):
     Represents a movie.
     Attributes:
         id (integer): primary key, auto-incrementing unique identifier
-        name (string): movie name
+        title (string): movie name
         director (sting): director from the movie
         year (integer): year of the book's first publication year
         rating (integer): rating of the movie
@@ -59,6 +59,14 @@ class Movie(db.Model):
         return f"{self.title} ({self.year}) by {self.director}"
 
 class UserMovies(db.Model):
+    """
+    This table is the link of the user from the user table
+    and the movies from the movie table.
+    Attributes:
+        id (integer): primary key, auto-incrementing unique identifier
+        user_id (integer): user id key, foreign key
+        movie_id (integer): movie id key, foreign key
+    """
     __tablename__ = 'user_movies'
 
     id = db.Column(db.Integer, primary_key=True, autoincrement=True)
