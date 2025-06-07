@@ -206,3 +206,50 @@ a:hover {
 .delete-button:hover {
     background-color: #b71c1c;
 }
+
+.below-buttons {
+    display: flex;
+    justify-content: flex-end;
+    align-items: flex-end;
+    height: 100px; /* optional, damit er sichtbar nach unten rutscht */
+    margin-top: 20px;
+    padding-right: 10px;
+    position: relative;
+}
+
+.delete-user-link {
+    color: #ff4c4c;
+    font-weight: bold;
+    text-decoration: none;
+    font-size: 16px;
+    padding: 10px 16px;
+    border: 2px solid #ff4c4c;
+    border-radius: 6px;
+    transition: background-color 0.3s ease;
+}
+
+.delete-user-link:hover {
+    background-color: #ff4c4c;
+    color: white;
+}
+
+.below-buttons {
+    display: flex;
+    justify-content: flex-end;
+    align-items: flex-end;
+    padding: 0 10px;
+    height: auto;
+    margin-top: 10px;
+}
+
+.delete-user-text {
+    color: #ff4c4c;
+    font-weight: bold;
+    font-size: 16px;
+    text-decoration: none;
+    padding: 4px 0;
+}
+
+.delete-user-text:hover {
+    text-decoration: underline;
+}

@@ -38,6 +38,9 @@
 
             <a href="{{ url_for('home') }}" class="button">Back to Home</a>
         </div>
+        <div class="below-buttons">
+            <a href="{{ url_for('delete_user', user_id=user_id) }}" class="delete-user-text">Delete User</a>
+        </div>
     </div>
 </body>
 </html>
