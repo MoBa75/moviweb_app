@@ -1,11 +1,9 @@
-from pydoc import describe
-
 from flask import Flask, request, render_template, redirect, url_for, abort
-from data_models import User, Movie, UserMovies
-from db_validation import validate_database
-import os
 from datamanager.sqlite_data_manager import SQLiteDataManager
+from db_validation import validate_database
 from movie_data_api import get_movie_data
+from data_models import User, Movie
+import os
 
 app = Flask(__name__)
 
@@ -182,5 +180,6 @@ def internal_error(error):
     """Handles 500 Internal Server errors."""
     return render_template('error.html', error=error)
 
+
 if __name__ == '__main__':
-    app.run(host='0.0.0.0', port=5002, debug=False)
+    app.run(host='0.0.0.0', port=5000, debug=False)

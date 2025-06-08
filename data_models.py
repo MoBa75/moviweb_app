@@ -2,6 +2,7 @@ from flask_sqlalchemy import SQLAlchemy
 
 db = SQLAlchemy()
 
+
 class User(db.Model):
     """
     Represents an user.
@@ -25,6 +26,7 @@ class User(db.Model):
     def __str__(self):
         """Returns a human-readable string representation of the User instance."""
         return f"{self.name}"
+
 
 class Movie(db.Model):
     """
@@ -57,6 +59,7 @@ class Movie(db.Model):
     def __str__(self):
         """Returns a human-readable string representation of the Movie instance."""
         return f"{self.title} ({self.year}) by {self.director}"
+
 
 class UserMovies(db.Model):
     """

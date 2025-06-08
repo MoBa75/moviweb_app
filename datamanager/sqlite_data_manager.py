@@ -2,6 +2,7 @@ from datamanager.data_manager_interface import DataManagerInterface
 from data_models import db, User, Movie, UserMovies
 from sqlalchemy.exc import SQLAlchemyError
 
+
 class SQLiteDataManager(DataManagerInterface):
     """Handles all database operations using SQLAlchemy."""
 
@@ -11,10 +12,7 @@ class SQLiteDataManager(DataManagerInterface):
         self.db = db
 
     def commit_only(self):
-        """
-        Commits the current session to the database.
-        Rolls back and returns an error message if the commit fails.
-        """
+        """Commits the current database session."""
         try:
             self.db.session.commit()
             return "", 200
@@ -23,7 +21,7 @@ class SQLiteDataManager(DataManagerInterface):
             return {'error': str(error)}, 500
 
     def add_element(self, element):
-        """Adds an element to the session and commits it to the database."""
+        """Adds a generic element to the session and commits it."""
         try:
             self.db.session.add(element)
             return self.commit_only()
@@ -31,14 +29,14 @@ class SQLiteDataManager(DataManagerInterface):
             return {'error': str(error)}, 500
 
     def get_all_users(self):
-        """Retrieves the names of all users in the database."""
+        """Returns a list of all usernames as tuples or an error dict."""
         try:
             return self.db.session.query(User.name).all(), 200
         except SQLAlchemyError as error:
             return {'error': str(error)}, 500
 
     def get_user_movies(self, user_id):
-        """Retrieves all movies associated with a given user ID."""
+        """Returns all movies associated with a given user ID."""
         try:
             user = self.db.session.get(User, user_id)
             if not user:
@@ -48,7 +46,7 @@ class SQLiteDataManager(DataManagerInterface):
             return {'error': str(error)}, 500
 
     def add_user(self, user):
-        """Adds a new user to the database if the user not already exist."""
+        """Adds a new user object to the database."""
         try:
             existing_user = self.db.session.query(User).filter_by(name=user.name).first()
             if existing_user:
@@ -58,10 +56,7 @@ class SQLiteDataManager(DataManagerInterface):
             return {'error': str(error)}, 500
 
     def delete_user(self, user_id):
-        """
-        Deletes a user from the database by ID, including associated
-        user-movie links. Deletes movies without remaining links.
-        """
+        """Deletes a user and all related user-movie associations."""
         try:
             user = self.db.session.get(User, user_id)
             if not user:
@@ -69,10 +64,13 @@ class SQLiteDataManager(DataManagerInterface):
             connection = self.db.session.query(UserMovies).filter_by(user_id=user_id).all()
             if connection:
                 connected_movies = [movie_connection.movie_id for movie_connection in connection]
-                self.db.session.delete(connection)
+                for link in connection:
+                    self.db.session.delete(link)
                 for movie_id in connected_movies:
                     if not self.db.session.query(UserMovies).filter_by(movie_id=movie_id).first():
-                        self.db.session.get(Movie, movie_id).delete()
+                        movie = self.db.session.get(Movie, movie_id)
+                        if movie:
+                            self.db.session.delete(movie)
             self.db.session.delete(user)
             result, status = self.commit_only()
             if status == 200:
@@ -82,14 +80,14 @@ class SQLiteDataManager(DataManagerInterface):
             return {'error': str(error)}, 500
 
     def get_all_movies(self):
-        """Retrieves all movie entries from the database."""
+        """Returns a list of all movie entries."""
         try:
             return self.db.session.query(Movie).all(), 200
         except SQLAlchemyError as error:
             return {'error': str(error)}, 500
 
     def add_movie(self, movie, user_id):
-        """Adds a new movie to the database if the title not already exist."""
+        """Adds a movie to the database."""
         try:
             existing_movie = self.db.session.query(Movie).filter_by(title=movie.title).first()
             if not existing_movie:
@@ -106,7 +104,7 @@ class SQLiteDataManager(DataManagerInterface):
             return {'error': str(error)}, 500
 
     def update_movie(self, movie, rating):
-        """Updates rating of a movie."""
+        """Updates the rating of an existing movie in the database."""
         if not isinstance(movie, Movie):
             return {'error': 'Movie has to be a Movie class instance.'}, 400
         if not isinstance(rating, float):
@@ -117,10 +115,7 @@ class SQLiteDataManager(DataManagerInterface):
         return message, status
 
     def delete_movie(self, user_id, movie_id):
-        """
-        Deletes a movie connection by user and movie id from the
-        database, deletes the movie if no connection is left.
-        """
+        """Deletes a movie from the database for a user."""
         movie, result = self.get_movie(movie_id)
         if result != 200:
             return {'error': 'Movie not found'}, 404
@@ -142,7 +137,7 @@ class SQLiteDataManager(DataManagerInterface):
             return {'error': str(error)}, 500
 
     def get_movie(self, movie_id):
-        """Gets a movie by movie id."""
+        """Gets a movie by movie ID."""
         try:
             existing_movie = self.db.session.get(Movie, movie_id)
             if not existing_movie:

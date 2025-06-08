@@ -1,11 +1,12 @@
-import os
-import requests
-from dotenv import load_dotenv
 from requests.exceptions import RequestException
+from dotenv import load_dotenv
+import requests
+import os
 
 load_dotenv()
 
 API_KEY = os.getenv('API_KEY')
+
 
 def get_movie_data(movie):
     """
