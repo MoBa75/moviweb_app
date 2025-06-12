@@ -16,24 +16,27 @@ class SQLiteDataManager(DataManagerInterface):
         try:
             self.db.session.commit()
             return "", 200
-        except SQLAlchemyError as error:
+        except SQLAlchemyError:
             self.db.session.rollback()
-            return {'error': str(error)}, 500
+            return {'error': 'Sorry, something went wrong while processing your request. '
+                             'Please try again in a few moments.'}, 500
 
     def add_element(self, element):
         """Adds a generic element to the session and commits it."""
         try:
             self.db.session.add(element)
             return self.commit_only()
-        except SQLAlchemyError as error:
-            return {'error': str(error)}, 500
+        except SQLAlchemyError:
+            return {'error': 'Sorry, something went wrong while processing your request. '
+                             'Please try again in a few moments.'}, 500
 
     def get_all_users(self):
         """Returns a list of all usernames as tuples or an error dict."""
         try:
             return self.db.session.query(User.name).all(), 200
-        except SQLAlchemyError as error:
-            return {'error': str(error)}, 500
+        except SQLAlchemyError:
+            return {'error': 'Sorry, something went wrong while processing your request. '
+                             'Please try again in a few moments.'}, 500
 
     def get_user_movies(self, user_id):
         """Returns all movies associated with a given user ID."""
@@ -42,8 +45,9 @@ class SQLiteDataManager(DataManagerInterface):
             if not user:
                 return {'error': "User does not exist."}, 404
             return [entry.movies for entry in user.user_movies], 200
-        except SQLAlchemyError as error:
-            return {'error': str(error)}, 500
+        except SQLAlchemyError:
+            return {'error': 'Sorry, something went wrong while processing your request. '
+                             'Please try again in a few moments.'}, 500
 
     def add_user(self, user):
         """Adds a new user object to the database."""
@@ -52,8 +56,9 @@ class SQLiteDataManager(DataManagerInterface):
             if existing_user:
                 return {"error": f"User '{user.name}' already exists."}, 409
             return self.add_element(user)
-        except SQLAlchemyError as error:
-            return {'error': str(error)}, 500
+        except SQLAlchemyError:
+            return {'error': 'Sorry, something went wrong while processing your request. '
+                             'Please try again in a few moments.'}, 500
 
     def delete_user(self, user_id):
         """Deletes a user and all related user-movie associations."""
@@ -76,15 +81,16 @@ class SQLiteDataManager(DataManagerInterface):
             if status == 200:
                 return {'message': 'User deleted'}, 200
             return result, status
-        except SQLAlchemyError as error:
-            return {'error': str(error)}, 500
-
+        except SQLAlchemyError:
+            return {'error': 'Sorry, something went wrong while processing your request. '
+                             'Please try again in a few moments.'}, 500
     def get_all_movies(self):
         """Returns a list of all movie entries."""
         try:
             return self.db.session.query(Movie).all(), 200
-        except SQLAlchemyError as error:
-            return {'error': str(error)}, 500
+        except SQLAlchemyError:
+            return {'error': 'Sorry, something went wrong while processing your request. '
+                             'Please try again in a few moments.'}, 500
 
     def add_movie(self, movie, user_id):
         """Adds a movie to the database."""
@@ -100,8 +106,9 @@ class SQLiteDataManager(DataManagerInterface):
                     return {"error": f"Movie '{movie.title}' already exists."}, 409
             new_connection = UserMovies(user_id=user_id, movie_id=existing_movie.id)
             return self.add_element(new_connection)
-        except SQLAlchemyError as error:
-            return {'error': str(error)}, 500
+        except SQLAlchemyError:
+            return {'error': 'Sorry, something went wrong while processing your request. '
+                             'Please try again in a few moments.'}, 500
 
     def update_movie(self, movie, rating):
         """Updates the rating of an existing movie in the database."""
@@ -132,9 +139,10 @@ class SQLiteDataManager(DataManagerInterface):
             if status == 200:
                 return {'message': 'Movie deleted'}, 200
             return result, status
-        except SQLAlchemyError as error:
+        except SQLAlchemyError:
             self.db.session.rollback()
-            return {'error': str(error)}, 500
+            return {'error': 'Sorry, something went wrong while processing your request. '
+                             'Please try again in a few moments.'}, 500
 
     def get_movie(self, movie_id):
         """Gets a movie by movie ID."""
@@ -143,8 +151,9 @@ class SQLiteDataManager(DataManagerInterface):
             if not existing_movie:
                 return {'error': 'Movie not found'}, 404
             return existing_movie, 200
-        except SQLAlchemyError as error:
-            return {'error': str(error)}, 500
+        except SQLAlchemyError:
+            return {'error': 'Sorry, something went wrong while processing your request. '
+                             'Please try again in a few moments.'}, 500
 
     def get_user_by_name(self, username):
         """Gets a user by name."""
@@ -153,6 +162,7 @@ class SQLiteDataManager(DataManagerInterface):
             if not existing_user:
                 return {'error': 'User not found'}, 404
             return existing_user, 200
-        except SQLAlchemyError as error:
+        except SQLAlchemyError:
             self.db.session.rollback()
-            return {'error': str(error)}, 500
+            return {'error': 'Sorry, something went wrong while processing your request. '
+                             'Please try again in a few moments.'}, 500
